@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 3fr 5fr 2fr;
+    }
+
+    .item1 {
+      background-color: pink;
+    }
+
+    .item2 {
+      background-color: skyblue;
+    }
+
+    .item3 {
+      background-color: purple;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 容器属性 -->
+  <!-- 
+    1. display: grid  指定一个容器采用网格布局    display: inline-grid;
+    2. grid-template-columns 属性，  grid-template-rows 属性
+          可以使用绝对单位, 也可以使用百分比,  fr 关键字
+      (1) repeat()          ------- 两种用法
+      (2) auto-fill 关键字   ----- repeat(auto-fill, 100px)
+      (3) fr 关键字          --------  表示比例关系
+      (4) minmax()           -------  minmax(100px, 1fr)
+      (5) auto关键字     -------  表示由浏览器自己决定长度。
+      (6) 网格线的名称  ------------  网格布局允许同一根线有多个名字
+      (7) 布局实例   --------    百分比,  repeat(12, 1fr)
+    3. grid-row-gap 属性， grid-column-gap 属性， grid-gap 属性--(简写)
+    4. grid-template-areas 属性----------   用于定义区域
+        例子:  grid-template-areas: "header header header"
+                                    "main main sidebar"
+                                    "footer footer footer";
+    5. grid-auto-flow 属性   (先行后列)    (先列后行)
+          row 和 column , row dense 和 column dense
+    6. justify-items 属性， align-items 属性， place-items 属性--(简写)
+        单元格
+    7. justify-content 属性， align-content 属性， place-content 属性
+        整个内容区域
+    8. grid-auto-columns 属性， grid-auto-rows 属性
+        新增 行 列
+    9. grid-template 属性-- (简写)-3个， grid 属性 (简写)--6个
+  -->
+  <!-- 项目属性 -->
+  <!-- 
+    1. grid-column-start 属性，grid-column-end 属性，
+      grid-row-start 属性，    grid-row-end 属性
+          通过网格线
+    2. grid-column 属性， grid-row 属性  ----(上面的简写)-2个
+    3. grid-area 属性  指定项目放在哪一个区域。 ---(简写)-4个
+    4. justify-self 属性，align-self 属性， place-self 属性 --(简写)
+  -->
+  <div class="container">
+    <div class="item1">3份</div>
+    <div class="item2">5份</div>
+    <div class="item3">2份</div>
+  </div>
+</body>
+
+</html>

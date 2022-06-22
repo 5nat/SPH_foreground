@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<!-- 
+    (1) let, const, 变量的解构赋值; 
+    (2) 模板字符串, 简化对象写法, 箭头函数;
+    (3) 函数参数默认值设定,     rest参数, spread扩展运算符;->(数组|对象)
+    (4) Symbol, 迭代器-iterator, 生成器-Generator, Promise-(await/async)
+    (5) set-类似数组， map-类似对象,  class-语法糖
+    数值扩展, 对象扩展, 模块化, 数组扩展, 
+    正则扩展(4个), es10, es11
+
+    trimStart() 和 trimEnd()
+    Array.prototype.flat(i) 和 Array.prototype.flatMap(()=>[])
+    Symbol.prototype.description
+    私有属性 #
+    Promise.all([]), Promise.allSettled([x, x])
+    可选链操作符    ?.   可替换  &&  && &&  (层层判断)
+    动态 import()  返回的是Promise->可提高加载的效率
+    BigInt  大整形-------运用更大数值计算(都先转化为BigInt)  n
+    globalThis    ----winsow|global-----作用
+  -->
+
+<body>
+
+  <!-- (4) -->
+  <script>
+    // (使用)  安全的向对象中添加属性和方法  &&  增强对象的使用
+    /* 
+    Symbol 的值是唯一的，用来解决命名冲突的问题
+    Symbol 值不能与其他数据进行运算
+    Symbol 定义的对象属性不能使用 for...in 循环遍历，
+    但是可以使用 Reflect.ownKeys 来获取对象的所有键名
+    */
+
+    // 这是一个 game 对象，假设我们不知道里面有什么属性和方法
+    const game = {
+      uname: '俄罗斯方块',
+      // up: function () { },
+      // down: function () { }
+    }
+
+    // 通过 Symbol 生成唯一的属性名，然后给 game 添加方法
+    let [up, down] = [Symbol('up'), Symbol('down')];
+    game[up] = function () {
+      console.log('up');
+    }
+    game[down] = function () {
+      console.log('down');
+    }
+
+    // 调用刚刚创建的方法
+    game[up]();
+    game[down]();
+  </script>
+
+  <script>
+    // (应用场景)：需要自定义遍历数据的时候，要想到迭代器。
+
+    /* 
+    Array Arguments Set Map String TypedArray NodeList
+    工作原理:
+    创建一个指针对象，指向当前数据结构的起始位置
+    第一次调用对象的 next 方法，指针自动指向数据结构的第一个成员
+    接下来不断调用 next 方法，指针一直往后移动，直到指向最后一个成员
+    每调用 next 方法返回一个包含 value 和 done 属性的对象
+    */
+
+
+    // 遍历数组 (for of 的原理)
+    let xiyou = ['唐僧', '孙悟空', '猪八戒', '沙僧'];
+    let iter2 = xiyou[Symbol.iterator]();
+    console.log(iter2.next()); // { value: '唐僧', done: false }
+    console.log(iter2.next()); // { value: '孙悟空', done: false }
+    console.log(iter2.next()); // { value: '猪八戒', done: false }
+    console.log(iter2.next()); // { value: '沙僧', done: false }
+
+
+    // 需求: 遍历对象中的数组(用for of )
+    const obj = {
+      name: '动物园',
+      animats: ['大像', '老虎', '狮子', '猫头鹰'],
+      [Symbol.iterator]() {
+        let i = 0
+        return {
+          next: () => {
+            if (i < this.animats.length) {
+              return { value: this.animats[i++], done: false }
+            } else {
+              return { value: undefined, done: true }
+            }
+          }
+        }
+      }
+    }
+    // obj.animats.forEach()      ----> 非面向对象思想
+    /*     for (let v in obj) {
+          console.log(v)
+        } */
+    for (let v of obj) {
+      console.log(v)
+    }
+  </script>
+
+  <script>
+    // 生成器函数是 ES6 提供的一种 异步编程解决方案，语法行为与传统函数完全不同。
+
+    /* 
+    1. * 的位置没有限制
+    2. 使用 function * gen() 和 yield 可以声明一个生成器函数。
+    生成器函数返回的结果是迭代器对象，调用迭代器对象的 next 方法可以得到 yield 语句后的值。
+    3. 每一个 yield 相当于函数的暂停标记，也可以认为是一个分隔符，
+    每调用一次 next()，生成器函数就往下执行一段。
+    4. next 方法可以传递实参，作为 yield 语句的返回值
+    */
+    function* generator(arg) {
+      console.log(arg); // 生成器第 1 段
+      let one = yield 111;
+      console.log(one); // 生成器第 2 段
+      let two = yield 222;
+      console.log(two); // 生成器第 3 段
+      let three = yield 333;
+      console.log(three); // 生成器第 4 段
+    }
+
+    let iter = generator('aaa'); // 传给生成器第 1 段
+    console.log(iter.next());
+    console.log(iter.next('bbb')); // 传给生成器第 2 段，作为这一段开始的 yield 语句返回值
+    console.log(iter.next('ccc')); // 传给生成器第 3 段，作为这一段开始的 yield 语句返回值
+    console.log(iter.next('ddd')); // 传给生成器第 4 段，作为这一段开始的 yield 语句返回值
+  </script>
+
+  <script>
+    // Promise 是 ES6 引入的异步编程的新解决方案。语法上 Promise 是一个构造函数，
+    // 用来封装异步操作并可以获取其成功或失败的结果。
+
+    // Promise.prototype.then 方法返回的结果依然是 Promise 对象，
+    // 对象状态由回调函数的执行结果决定
+
+    /*
+    (1). 若 then 方法没有返回值，则 then 方法返回的对象的状态值
+    为成功 fulfilled，返回结果值为 undefined。
+    (2). 如果回调函数中返回的结果是非 Promise 类型的属性，
+    则 then 方法返回的对象，其状态为成功（fulfilled），
+    返回结果值取决于 then 方法所执行的是哪个函数（resolve 或 reject）。
+    (3). 如果回调函数中返回的结果是 Promise 类型（return new Promise()），
+    则 then 方法返回的 Promise 对象状态与该(返回结果的状态相同，返回值也相同)。
+    (4). 如果回调函数中返回的结果是 throw 语句抛出异常，则 then 方法的对象的状态值为 rejected，
+    返回结果值为 throw 抛出的字面量或者 Error 对象。
+
+    (5).    .catch 是 .then 的语法糖 ----只有失败的回调
+    */
+  </script>
+
+  <!-- (5) -->
+  <script>
+    /*
+    ES6 提供了新的数据结构 Set（集合）。它类似于数组，但 成员的值都是唯一的，
+    集合实现了 iterator 接口，所以可以使用『扩展运算符』和『for...of』进行遍历。
+    */
+
+    /*
+    st.size：返回集合个数
+    st.add(item)：往集合中添加一个新元素 item，返回当前集合
+    st.delete(item)：删除集合中的元素，返回 boolean 值
+    st.has(item)：检测集合中是否包含某个元素，返回 boolean 值
+    st.clear()：清空集合
+    集合转为数组：[...st]
+    合并两个集合：[...st1, ...st2]
+    */
+    // (案例)
+    let arr = [1, 2, 3, 4, 5, 4, 3, 2, 1]
+    // (1).数组去重
+    // let result = [...new Set(arr)]
+    // console.log(result);
+    // (2).交集
+    let arr2 = [4, 5, 6, 5, 6]
+    // let result = [...new Set(arr)].filter(item => new Set(arr2).has(item))
+    // console.log(result); // 4 5
+    // (3).并集
+    // let union = [...new Set([...arr, ...arr2])]
+    // console.log(union);
+    // (4).差集---与交集相反--->需要看谁是主体
+    let diff = [...new Set(arr)].filter(item => !new Set(arr2).has(item))
+    console.log(diff)
+
+  </script>
+
+  <script>
+    /*
+    ES6 提供了 Map 数据结构。它类似于对象，也是键值对的集合。
+    但是 “键” 的范围不限于字符串，各种类型的值（包括对象）都可以当作键。
+    Map 也实现了 iterator 接口，所以可以使用『扩展运算符』和『for...of』进行遍历。
+    
+    Map 的属性和方法：（k 为键，v为值）
+
+    size：返回 Map 的元素（键值对）个数
+    set(k, v)：增加一个键值对，返回当前 Map
+    delete()
+    get(k)：返回键值对的键值
+    has()：检测 Map 中是否包含某个元素
+    clear()：清空集合，返回 undefined
+    */
+
+
+  </script>
+
+  <script>
+
+    /*
+    es5:  组合继承(构造函数继承(需传参)&&原型链继承)
+    es6:  class     要写构造函数   --> 没有也可以, 有默认的空
+          static    静态----属于类的属性和方法 不属于实例对象
+          继承:     super(传参)   &&   extends   &&   方法重写(覆盖)
+          get-->数是随数据变化的  &&  set-->可以校验数据      
+    */
+
+    /*     //手机
+        function Phone(brand, price) {
+          this.brand = brand;
+          this.price = price;
+        }
+        Phone.prototype.call = function () {
+          console.log("我可以打电话");
+        }
+        //智能手机
+        function SmartPhone(brand, price, color, size) {
+          Phone.call(this, brand, price);
+          this.color = color;
+          this.size = size;
+        }
+        //设置子级构造函数的原型
+        SmartPhone.prototype = new Phone;
+        // 矫正 constructor 指向
+        SmartPhone.prototype.constructor = SmartPhone;
+        //声明子类的方法
+        SmartPhone.prototype.photo = function () {
+          console.log("我可以拍照")
+        }
+        SmartPhone.prototype.playGame = function () {
+          console.log("我可以玩游戏");
+        }
+        const chuizi = new SmartPhone('锤子', 2499, '黑色', '5.5inch');
+        console.log(chuizi); */
+
+    //---------------------------------------
+    class Phone {
+      //构造方法
+      constructor(brand, price) {
+        this.brand = brand;
+        this.price = price;
+      }
+      //父类的成员属性
+      call() {
+        console.log("我可以打电话!!");
+      }
+    }
+    class SmartPhone extends Phone {
+      //构造方法
+      constructor(brand, price, color, size) {
+        super(brand, price);// Phone.call(this, brand, price)
+        this.color = color;
+        this.size = size;
+      }
+      photo() {
+        console.log("拍照");
+      }
+      // 方法的重写
+      call() {
+        console.log('我可以进行视频通话');
+      }
+    }
+    const xiaomi = new SmartPhone('小米', 799, '黑色', '4.7inch');
+    xiaomi.call();
+    xiaomi.photo();
+  </script>
+
+  <script>
+    // (1)Number.EPSILON 是 JavaScript 表示的最小精度，
+    // 一般用来处理浮点数运算。例如可以用于两个浮点数的比较。
+    let equal = (x, y) => Math.abs(x - y) < Number.EPSILON;
+    console.log(0.1 + 0.2 === 0.3); // false
+    console.log(equal(0.1 + 0.2, 0.3)); // true
+    // (2)二进制和八进制：二进制以 0b 开头，八进制以 0o 开头。0x 16进制
+    // (3)Number.isFinite() 检测一个数值是否为有限数。
+    // (4)Number.isNaN() 检测一个数值是否为NaN
+    // (6)Number.isInteger() 判断一个数是否为整数。
+    // (8)Math.sign() 判断一个数到底为正数 负数 还是零      1  0  -1
+    // (5)Number.parseInt() 和 Number.parseFloat()    Number.parseInt(s, base);
+    // (7)Math.trunc() 将数字的小数部分抹掉。
+
+  </script>
+
+  <script>
+
+    /* 
+    (1)delete 删除对象的属性
+
+    (2)Object.keys(), Object.values()
+
+    (3)Object.entries(o), Object.fromEntries(map|set|array)把二维array转换为object
+    (4)
+    Object.defineProperty(对象,属性名,属性描述对象); 定义属性，也可以定义Symbol
+      属性描述对象:{configurable, enumerable, writable, value, set, get}
+          writable/value, set/get这两对不能同时出现
+    Object.defineProperties（）定义属性，可定义多个，默认为false，可定义Symbol
+    (5)判断对象的对象属性是否包含这个属性名
+    console.log(o1.hasOwnProperty("b"))
+    console.log(Object.hasOwn(o1,"b"))
+    */
+
+    // (1)Object.is() 方法判断两个值是否完全相同。    与===很像
+    console.log(Object.is({}, {})); //false
+    console.log(Object.is(NaN, NaN)); // true
+    console.log(NaN === NaN); // false
+    console.log(+0, -0); // false
+    console.log(+0 === -0); // true
+    // (2)Object.assign(模板, 要覆盖的内容) 对象的合并，     相当于浅拷贝。
+    //不能复制不可枚举属性,继承属性和不可枚举的属性是不能被拷贝的
+    // (3)Object.setPrototypeOf(对象, 设置的原型对象) 用于设置对象的原型对象，
+    // Object.getPrototypeof(对象) 用于获取对象的原型对象，相当于 __proto__。
+  </script>
+
+  <script>
+    // es7
+    /*
+    (1) includes 方法用来检测数组中是否包含某个元素，返回布尔类型值。
+        对比  indexOf   有返回标,没有返回-1
+    (2) **
+    console.log(2 ** 10)
+    console.log(Math.pow(2, 10))
+    */
+
+    // es8
+    /*
+    async 声明（function）的函数成为 async 函数
+
+    async 内部可以使用 await，也可以不使用。 async 函数的返回值是一个 Promise 对象，
+    因此执行这个函数时，可以使用 then 和 catch 方法。 根据 函数体内部 的返回值
+    (1)函数体内不返回任何值，则 async 函数返回值为一个成功（fulfilled）的 Promise 对象，状态值为 undefined。
+    (2)返回结果不是一个 Promise ，则 async 函数返回值为一个成功（fulfilled）的 Promise 对象，状态值为这个内部返回值。
+    (3)内部抛出错误，则 async 函数返回值为一个失败的 Promise 对象。
+    (4)若函数内部返回值是一个 Promise 对象，则 async 函数返回值的状态取决于这个 Promise 对象
+
+    await 相当于一个运算符，右边接一个值。一般为一个 Promise 对象，也可以是一个非 Promise 类型。
+
+    await 必须结合 async 使用，而 async 则不一定需要 await。 
+    async 会将其后的函数的返回值封装成一个 Promise 对象，
+    而 await 会等待这个 Promise 完成，然后返回 resolve 的结果。(成功的状态)
+    当这个 Promise 失败或者抛出异常时，需要时使用 try-catch 捕获处理。
+    */
+
+    // es9: 正则扩展
+
+    // (1) 命名捕获分组
+    let str = '<a href="http://www.atguigu.com"></a>'
+    // 提取url和文本
+    // const reg = /<a href="(.*)">(.*)<\/a>/
+    // 结果会多出一个groups      
+    const reg = /<a href="(?<url>.*)">(?<test>.*)<\/a>/
+    const result = reg.exec(str)
+    console.log(result);
+
+    // (2) 反向断言--判断匹配的结果正确与否---唯一性识别
+
+    let str2 = 'JS5211314你知道吗555啦啦啦'
+    // const reg2 = /\d+(?=啦)/       // 正向断言
+    const reg2 = /(?<=吗)\d+/        // 反向断言
+    const result2 = reg2.exec(str2)
+    console.log(result2);
+
+    // (3) dot  .   元字符(除换行符以外的任意单个字符)
+    // (4) String.prototype.matchAll
+    let str3 = `<ul>
+    <li>
+      <a>肖生克的救赎</a>
+      <p>上映日期: 1994-09-10</p>
+    </li>
+    <li>
+      <a>阿甘正传</a>
+      <p>上映日期: 1994-07-06</p>
+    </li>
+  </ul>`
+    const reg3 = /<li>.*?<a>(.*?)<\/a>.*?<p>(.*?)<\/p>/sg
+    const result3 = str3.matchAll(reg3)
+    console.log(result3); // 可迭代对象-->用for of 或 扩展运算符
+    for (let v of result3) {
+      console.log(v);
+    }
+
+    // es10
+    /*
+    (1)Object.fromEntries() 方法把可迭代对象的键值对列表转换为一个对象。
+    (2)trimStart() 和 trimEnd()
+    (3)Array.prototype.flat(i) 和 Array.prototype.flatMap(()=>[])
+    (4)Symbol.prototype.description
+    */
+
+    // es11
+    /*
+    (1)提供了类的私有属性，在类的外部无法访问该属性。只有再类的内部能访问. #
+    (2)Promise.allSettled([x, x])
+    该 Promise.allSettled() 方法返回一个在所有给定的 promise 都已经 fulfilled 或 rejected 后的 promise，
+    并带有一个对象数组，每个对象表示对应的 promise 结果。
+    allSettled 方法返回的 Promise 对象 始终 是成功（fulfilled）的。
+
+    Promise.all([x, x])  --> 只有 全部成功才会返回成功的promise, 值为失败的那个|成功的结果
+    (3)可选链操作符    ?.   可替换  &&  && &&  (层层判断)
+    (4)动态 import()  返回的是Promise--->可提高加载的效率
+    (5)BigInt
+    (6)globalThis
+    */
+  </script>
+</body>
+
+</html>
